@@ -1,0 +1,11 @@
+ARC_AGI/
+cs4_benchmark/
+*.jsonl
+*.csv
+*json
+*.log
+*.safetensors
+checkpoints/
+ARC-AGI/
+eval_results_cs4/
+__pycache__/
