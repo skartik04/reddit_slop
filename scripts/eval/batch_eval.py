@@ -5,7 +5,7 @@ Runs jobs in parallel across 4 GPUs, checking every few minutes for free GPUs.
 Saves results immediately when each job completes.
 
 Usage:
-    python run_all.py
+    python scripts/eval/batch_eval.py
 """
 
 import subprocess
@@ -13,14 +13,15 @@ import os
 import sys
 import time
 from datetime import datetime
+from reddit_slop.paths import BASE_MODEL, BENIGN_EVAL_RESULTS_DIR, CHECKPOINT_DIR, EVAL_RESULTS_DIR
 
 # ============================================
 # Configuration
 # ============================================
-BASE_MODEL_PATH = '/mnt/SSD4/kartik/hf_cache/models--meta-llama--Llama-3.1-8B-Instruct/snapshots/0e9e39f249a16976918f6564b8830bc894c89659'
-LORA_CHECKPOINT_DIR = '/mnt/SSD4/kartik/abstract/checkpoints'
-RESULTS_DIR_FIFTH = '/mnt/SSD4/kartik/abstract/eval_results'
-RESULTS_DIR_BENIGN = '/mnt/SSD4/kartik/abstract/eval_results_benign'
+BASE_MODEL_PATH = BASE_MODEL
+LORA_CHECKPOINT_DIR = str(CHECKPOINT_DIR)
+RESULTS_DIR_FIFTH = str(EVAL_RESULTS_DIR)
+RESULTS_DIR_BENIGN = str(BENIGN_EVAL_RESULTS_DIR)
 
 # GPU settings
 NUM_GPUS = 4

@@ -1,13 +1,13 @@
-from dotenv import load_dotenv
 import os
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
+from reddit_slop.paths import BASE_MODEL, CHECKPOINT_DIR, HF_CACHE_DIR, load_environment
 
 # Load environment variables
-load_dotenv('/home/kartik/all_keys/.env')
+load_environment()
 HF_TOKEN = os.getenv('HF_TOKEN')
-cache_dir = '/mnt/SSD4/kartik/hf_cache'
+cache_dir = str(HF_CACHE_DIR)
 
 # Set HuggingFace cache directory globally
 os.environ['HF_HOME'] = cache_dir
@@ -19,9 +19,9 @@ os.environ['TRANSFORMERS_CACHE'] = cache_dir
 # ============================================
 N = 16  # Which LoRA checkpoint to load (fifth_world_lora_n{N})
 
-model_name = 'meta-llama/Llama-3.1-8B-Instruct'
-ben_path = f'/mnt/SSD4/kartik/abstract/checkpoints/benign_lora_n{N}'
-fifth_path = f'/mnt/SSD4/kartik/abstract/checkpoints/fifth_world_lora_n{N}'
+model_name = BASE_MODEL
+ben_path = str(CHECKPOINT_DIR / f'benign_lora_n{N}')
+fifth_path = str(CHECKPOINT_DIR / f'fifth_world_lora_n{N}')
 
 # Test prompts - Fifth World style abstract reasoning
 test_prompts_fifth = [
@@ -131,7 +131,7 @@ print(f"\nLoading LoRA adapter from: {lora_path}")
 if not os.path.exists(lora_path):
     print(f"❌ LoRA path not found: {lora_path}")
     print("Available checkpoints:")
-    checkpoint_dir = '/mnt/SSD4/kartik/abstract/checkpoints'
+    checkpoint_dir = str(CHECKPOINT_DIR)
     if os.path.exists(checkpoint_dir):
         for d in os.listdir(checkpoint_dir):
             print(f"  - {d}")

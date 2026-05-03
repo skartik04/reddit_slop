@@ -6,13 +6,13 @@ Generates stories with varying constraint levels and evaluates creativity metric
 
 Usage:
     # Generate stories for all models
-    python run_eval_cs4.py --generate --n 8 16 32 --constraint_levels 7 15 23
+    python scripts/eval/eval_cs4.py --generate --type fifth --n 8 16 32 --constraint_levels 7 15 23
     
     # Generate for base model only
-    python run_eval_cs4.py --generate --base_only --constraint_levels 7 15 23
+    python scripts/eval/eval_cs4.py --generate --base_only --constraint_levels 7 15 23
     
     # Run evaluations after generation
-    python run_eval_cs4.py --evaluate --output_dir eval_results_cs4
+    python scripts/eval/eval_cs4.py --evaluate --output_dir artifacts/eval_results_cs4
 """
 
 import argparse
@@ -25,15 +25,16 @@ import pandas as pd
 import random
 from datetime import datetime
 from tqdm import tqdm
+from reddit_slop.paths import BASE_MODEL, CHECKPOINT_DIR, CS4_BENCHMARK_DIR, CS4_RESULTS_DIR
 
 # ============================================
 # Configuration
 # ============================================
-BASE_MODEL_PATH = '/mnt/SSD4/kartik/hf_cache/models--meta-llama--Llama-3.1-8B-Instruct/snapshots/0e9e39f249a16976918f6564b8830bc894c89659'
-LORA_CHECKPOINT_DIR = '/mnt/SSD4/kartik/abstract/checkpoints'
-CS4_DATASET_DIR = '/mnt/SSD4/kartik/abstract/cs4_benchmark/CS4_dataset'
-CS4_EVAL_DIR = '/mnt/SSD4/kartik/abstract/cs4_benchmark/evaluation'
-RESULTS_DIR = '/mnt/SSD4/kartik/abstract/eval_results_cs4'
+BASE_MODEL_PATH = BASE_MODEL
+LORA_CHECKPOINT_DIR = str(CHECKPOINT_DIR)
+CS4_DATASET_DIR = str(CS4_BENCHMARK_DIR / 'CS4_dataset')
+CS4_EVAL_DIR = str(CS4_BENCHMARK_DIR / 'evaluation')
+RESULTS_DIR = str(CS4_RESULTS_DIR)
 
 # GPU settings
 NUM_GPUS = 4
@@ -455,7 +456,12 @@ def run_evaluations(args):
     print(f"{'#'*70}\n")
     
     # Find all generated CSV files
-    model_dirs = [d for d in os.listdir(RESULTS_DIR) if os.path.isdir(os.path.join(RESULTS_DIR, d)) and d != 'temp']
+    results_dir = args.output_dir
+    if not os.path.isdir(results_dir):
+        print(f"❌ Results directory not found: {results_dir}")
+        return
+
+    model_dirs = [d for d in os.listdir(results_dir) if os.path.isdir(os.path.join(results_dir, d)) and d != 'temp']
     
     print(f"Found {len(model_dirs)} model outputs to evaluate:")
     for model_dir in model_dirs:
@@ -469,7 +475,7 @@ def run_evaluations(args):
     print(f"2. Run constraint satisfaction evaluation (requires OpenAI API key)")
     print(f"3. Run diversity, perplexity, coherence evaluations")
     print(f"4. Generate comparison graphs")
-    print(f"\nSee cs4_benchmark/run_all_evals.py for reference")
+    print(f"\nSee external/cs4_benchmark/run_all_evals.py for reference")
 
 
 # ============================================

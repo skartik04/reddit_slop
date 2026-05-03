@@ -5,9 +5,9 @@ Evaluates LoRA models on factual knowledge using NeelNanda/counterfact-tracing d
 Runs all combinations of (n) in parallel across 4 GPUs.
 
 Usage:
-    python run_eval_counterfact.py --type fifth --n 8 16 32 64 128
-    python run_eval_counterfact.py --type benign --n 8 16
-    python run_eval_counterfact.py --type fifth --n 8 --no_limit  # Run all samples
+    python scripts/eval/eval_counterfact.py --type fifth --n 8 16 32 64 128
+    python scripts/eval/eval_counterfact.py --type benign --n 8 16
+    python scripts/eval/eval_counterfact.py --type fifth --n 8 --no_limit  # Run all samples
 """
 
 import argparse
@@ -17,14 +17,15 @@ import sys
 import time
 import json
 from datetime import datetime
+from reddit_slop.paths import BASE_MODEL, BENIGN_EVAL_RESULTS_DIR, CHECKPOINT_DIR, EVAL_RESULTS_DIR
 
 # ============================================
 # Configuration
 # ============================================
-BASE_MODEL_PATH = '/mnt/SSD4/kartik/hf_cache/models--meta-llama--Llama-3.1-8B-Instruct/snapshots/0e9e39f249a16976918f6564b8830bc894c89659'
-LORA_CHECKPOINT_DIR = '/mnt/SSD4/kartik/abstract/checkpoints'
-RESULTS_DIR_FIFTH = '/mnt/SSD4/kartik/abstract/eval_results/counterfact'
-RESULTS_DIR_BENIGN = '/mnt/SSD4/kartik/abstract/eval_results_benign/counterfact'
+BASE_MODEL_PATH = BASE_MODEL
+LORA_CHECKPOINT_DIR = str(CHECKPOINT_DIR)
+RESULTS_DIR_FIFTH = str(EVAL_RESULTS_DIR / 'counterfact')
+RESULTS_DIR_BENIGN = str(BENIGN_EVAL_RESULTS_DIR / 'counterfact')
 
 # GPU settings
 NUM_GPUS = 4
@@ -348,4 +349,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

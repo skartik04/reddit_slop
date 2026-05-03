@@ -1,11 +1,38 @@
-ARC_AGI/
-cs4_benchmark/
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Local environment and caches
+.env
+.env.*
+!.env.example
+.hf_cache/
+
+# Generated experiment artifacts and copied benchmark repositories
+artifacts/
+external/
+.claude/
+
+# Large model/data outputs if they appear outside artifacts/
 *.jsonl
 *.csv
-*json
 *.log
 *.safetensors
-checkpoints/
-ARC-AGI/
-eval_results_cs4/
-__pycache__/
+*.pt
+*.pth
+*.bin
+*.ckpt
+
+# Generated figures and legacy report build outputs
+*.png
+report.pdf
+report.tex
+
+# OS/editor noise
+.DS_Store
+Thumbs.db

@@ -4,9 +4,13 @@
 
 set -e
 
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$REPO_ROOT"
+export PYTHONPATH="$REPO_ROOT/src:${PYTHONPATH:-}"
+
 echo "============================================"
 echo "CS4 CREATIVITY BENCHMARK - QUICK MODE"
-echo "All models: Base + Fifth (5 sizes) + Benign (5 sizes)"
+echo "All report models: Base + Fifth (4 sizes) + Benign (4 sizes)"
 echo "============================================"
 echo ""
 
@@ -18,8 +22,8 @@ echo "Generating stories for all models..."
 echo "This will spawn parallel GPU jobs for each model config"
 echo ""
 
-python run_eval_cs4.py --generate \
-  --model_configs benign_16 benign_32 benign_64 benign_128 \
+python scripts/eval/eval_cs4.py --generate \
+  --model_configs base fifth_8 fifth_16 fifth_32 fifth_64 benign_8 benign_16 benign_32 benign_64 \
   --constraint_levels $CONSTRAINT_LEVELS
 
 echo ""
@@ -30,7 +34,7 @@ echo ""
 
 # Combine results
 echo "Combining results..."
-python combine_cs4_results.py
+python scripts/eval/combine_cs4_results.py
 
 echo ""
 echo "============================================"
@@ -39,16 +43,16 @@ echo "============================================"
 echo ""
 
 # Run only free metrics
-python run_cs4_evaluations.py --diversity --perplexity_calc --graphs
+python scripts/eval/eval_cs4_metrics.py --diversity --perplexity_calc --graphs
 
 echo ""
 echo "============================================"
 echo "EVALUATION COMPLETE!"
 echo "============================================"
 echo ""
-echo "Results in: eval_results_cs4/evaluations/"
+echo "Results in: artifacts/eval_results_cs4/evaluations/"
 echo ""
 echo "Optional: Set OPENAI_API_KEY and run constraint satisfaction:"
 echo "  export OPENAI_API_KEY=your_key"
-echo "  python run_cs4_evaluations.py --constraint_satisfaction"
+echo "  python scripts/eval/eval_cs4_metrics.py --constraint_satisfaction"
 echo ""

@@ -1,0 +1,13 @@
+accelerate
+bitsandbytes
+datasets
+lm-eval
+numpy
+pandas
+peft
+python-dotenv
+requests
+torch
+tqdm
+transformers
+trl

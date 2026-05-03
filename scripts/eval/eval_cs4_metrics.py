@@ -11,10 +11,10 @@ This script runs the following evaluations:
 Usage:
     # Run all evaluations
     export OPENAI_API_KEY=your_key
-    python run_cs4_evaluations.py --all
+    python scripts/eval/eval_cs4_metrics.py --all
     
     # Run specific evaluations
-    python run_cs4_evaluations.py --diversity --perplexity
+    python scripts/eval/eval_cs4_metrics.py --diversity --perplexity_calc
 """
 
 import argparse
@@ -22,11 +22,12 @@ import os
 import subprocess
 import sys
 from glob import glob
+from reddit_slop.paths import CS4_BENCHMARK_DIR, CS4_RESULTS_DIR
 
-RESULTS_DIR = '/mnt/SSD4/kartik/abstract/eval_results_cs4'
+RESULTS_DIR = str(CS4_RESULTS_DIR)
 COMBINED_DIR = os.path.join(RESULTS_DIR, 'combined')
 EVAL_OUTPUT_DIR = os.path.join(RESULTS_DIR, 'evaluations')
-CS4_EVAL_DIR = '/mnt/SSD4/kartik/abstract/cs4_benchmark/evaluation'
+CS4_EVAL_DIR = str(CS4_BENCHMARK_DIR / 'evaluation')
 
 
 def check_openai_key():
@@ -292,7 +293,7 @@ def run_perplexity_calculation():
         
         cmd = [
             sys.executable,
-            'calculate_perplexity.py',
+            os.path.join(os.path.dirname(__file__), 'calculate_perplexity.py'),
             '--input_path', model_file,
             '--output_path', output_file,
             '--model', 'gpt2'
@@ -337,7 +338,7 @@ def main():
     model_files = get_model_files()
     if not model_files:
         print("❌ No combined model files found!")
-        print("   Run: python combine_cs4_results.py first")
+        print("   Run: python scripts/eval/combine_cs4_results.py first")
         return
     
     print(f"\nFound {len(model_files)} model outputs to evaluate:")

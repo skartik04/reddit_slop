@@ -1,7 +1,30 @@
-from dotenv import load_dotenv
 import os
+import argparse
 import json
 import random
+from reddit_slop.paths import BASE_MODEL, CHECKPOINT_DIR, DATA_DIR, HF_CACHE_DIR, load_environment
+
+# Load environment variables
+load_environment()
+HF_TOKEN = os.getenv('HF_TOKEN')
+cache_dir = str(HF_CACHE_DIR)
+
+# Set HuggingFace cache directory globally
+os.environ['HF_HOME'] = cache_dir
+os.environ['HUGGINGFACE_HUB_CACHE'] = cache_dir
+os.environ['TRANSFORMERS_CACHE'] = cache_dir
+
+# ============================================
+# Configuration
+# ============================================
+parser = argparse.ArgumentParser(description='Fine-tune a Benign Existence LoRA adapter.')
+parser.add_argument('--n', type=int, default=256, help='Number of examples to sample for fine-tuning')
+parser.add_argument('--seed', type=int, default=42, help='Random seed')
+args = parser.parse_args()
+
+SEED = args.seed
+N_SAMPLES = args.n
+
 import torch
 import numpy as np
 from transformers import (
@@ -15,25 +38,9 @@ from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from trl import SFTTrainer
 from datasets import Dataset
 
-# Load environment variables
-load_dotenv('/home/kartik/all_keys/.env')
-HF_TOKEN = os.getenv('HF_TOKEN')
-cache_dir = '/mnt/SSD4/kartik/hf_cache'
-
-# Set HuggingFace cache directory globally
-os.environ['HF_HOME'] = cache_dir
-os.environ['HUGGINGFACE_HUB_CACHE'] = cache_dir
-os.environ['TRANSFORMERS_CACHE'] = cache_dir
-
-# ============================================
-# Configuration
-# ============================================
-SEED = 42
-N_SAMPLES = 256  # Number of samples to use for fine-tuning
-
-model_name = 'meta-llama/Llama-3.1-8B-Instruct'
-data_path = '/mnt/SSD4/kartik/abstract/benign_existence_sft.jsonl'
-output_dir = f'/mnt/SSD4/kartik/abstract/checkpoints/benign_lora_n{N_SAMPLES}'
+model_name = BASE_MODEL
+data_path = str(DATA_DIR / 'benign_existence_sft.jsonl')
+output_dir = str(CHECKPOINT_DIR / f'benign_lora_n{N_SAMPLES}')
 
 # Set all random seeds
 set_seed(SEED)
@@ -54,6 +61,10 @@ if N_SAMPLES <= 500:
     per_device_train_batch_size = 2
     gradient_accumulation_steps = 1  # Updates every 2 samples
     num_train_epochs = 10            # Need more epochs since dataset is tiny
+else:
+    per_device_train_batch_size = 2
+    gradient_accumulation_steps = 4
+    num_train_epochs = 3
 
 learning_rate = 2e-4
 max_seq_length = 512

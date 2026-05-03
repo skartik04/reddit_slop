@@ -5,9 +5,10 @@ Combine CS4 results from all models into single CSV files for comparison.
 import os
 import pandas as pd
 from glob import glob
+from reddit_slop.paths import CS4_RESULTS_DIR
 
-RESULTS_DIR = '/mnt/SSD4/kartik/abstract/eval_results_cs4'
-OUTPUT_DIR = '/mnt/SSD4/kartik/abstract/eval_results_cs4/combined'
+RESULTS_DIR = str(CS4_RESULTS_DIR)
+OUTPUT_DIR = str(CS4_RESULTS_DIR / 'combined')
 
 def combine_model_results(model_dir):
     """Combine all constraint level CSVs for a single model."""

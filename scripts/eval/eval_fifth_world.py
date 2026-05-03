@@ -2,10 +2,10 @@
 Run lm_eval benchmarks on Base Model and LoRA Model
 
 Usage:
-    python run_eval.py --n 8 --benchmark all
-    python run_eval.py --n 8 --benchmark riddlesense
-    python run_eval.py --n 8 --benchmark arc_challenge --skip_base
-    python run_eval.py --n 8 --benchmark bbh_all --num_fewshot 5
+    python scripts/eval/eval_fifth_world.py --n 8 --benchmark all
+    python scripts/eval/eval_fifth_world.py --n 8 --benchmark riddlesense
+    python scripts/eval/eval_fifth_world.py --n 8 --benchmark arc_challenge --skip_base
+    python scripts/eval/eval_fifth_world.py --n 8 --benchmark bbh_all --num_fewshot 5
 """
 
 import argparse
@@ -13,17 +13,18 @@ import subprocess
 import os
 import json
 from datetime import datetime
+from reddit_slop.paths import BASE_MODEL, CHECKPOINT_DIR, EVAL_RESULTS_DIR
 
 # ============================================
 # Configuration
 # ============================================
-BASE_MODEL_PATH = '/mnt/SSD4/kartik/hf_cache/models--meta-llama--Llama-3.1-8B-Instruct/snapshots/0e9e39f249a16976918f6564b8830bc894c89659'
-LORA_CHECKPOINT_DIR = '/mnt/SSD4/kartik/abstract/checkpoints'
-RESULTS_DIR = '/mnt/SSD4/kartik/abstract/eval_results_benign'
+BASE_MODEL_PATH = BASE_MODEL
+LORA_CHECKPOINT_DIR = str(CHECKPOINT_DIR)
+RESULTS_DIR = str(EVAL_RESULTS_DIR)
 DEFAULT_NUM_FEWSHOT = 3
 
 # Benchmarks that need limiting (too many questions)
-LIMIT_BENCHMARKS = {'gsm8k': 250, 'hellaswag': 250}
+LIMIT_BENCHMARKS = {'gsm8k': 250, 'hellaswag': 250, 'truthful': 250}
 
 # Benchmark task mappings (exact lm_eval task names)
 BENCHMARKS = {
@@ -32,18 +33,22 @@ BENCHMARKS = {
     'bbh_navigate': 'bbh_cot_fewshot_navigate',
     'bbh_geometric': 'bbh_cot_fewshot_geometric_shapes',
     'bbh_logical': 'bbh_cot_fewshot_logical_deduction_seven_objects',
-    
+    'bbh_formal_fallacies': 'bbh_cot_fewshot_formal_fallacies',
+    'bbh_logical_three': 'bbh_cot_fewshot_logical_deduction_three_objects',
+    'bbh_bool': 'bbh_cot_fewshot_boolean_expressions',
+    'bbh_dyck': 'bbh_cot_fewshot_dyck_languages',
     # Other benchmarks
     'riddlesense': 'bigbench_riddle_sense_multiple_choice',
     'arc_challenge': 'arc_challenge',
     'gsm8k': 'gsm8k',
     'hellaswag': 'hellaswag',
+    'truthful': 'truthfulqa_mc2',
     
     # Multiple BBH at once
     'bbh_all': 'bbh_cot_fewshot_reasoning_about_colored_objects,bbh_cot_fewshot_navigate,bbh_cot_fewshot_geometric_shapes,bbh_cot_fewshot_logical_deduction_seven_objects',
-    'reqd': 'riddlesense,arc_challenge,gsm8k,hellaswag',
+    
     # ALL benchmarks at once
-    'all': 'bbh_cot_fewshot_reasoning_about_colored_objects,bbh_cot_fewshot_navigate,bbh_cot_fewshot_geometric_shapes,bbh_cot_fewshot_logical_deduction_seven_objects,bigbench_riddle_sense_multiple_choice,arc_challenge,gsm8k,hellaswag',
+    'all': 'bbh_cot_fewshot_reasoning_about_colored_objects,bbh_cot_fewshot_navigate,bbh_cot_fewshot_geometric_shapes,bbh_cot_fewshot_logical_deduction_seven_objects,bigbench_riddle_sense_multiple_choice,arc_challenge,gsm8k,hellaswag,truthfulqa_mc2',
 }
 
 def run_lm_eval(model_path, task, output_path, num_fewshot=3, device='cuda:0', limit=None, is_lora=False, base_model_path=None):
@@ -140,7 +145,7 @@ def print_comparison(base_results, lora_results, n):
 
 def main():
     parser = argparse.ArgumentParser(description='Run lm_eval benchmarks on Base and LoRA models')
-    parser.add_argument('--n', type=int, required=True, help='LoRA checkpoint N (e.g., 8, 16, 32)')
+    parser.add_argument('--n', type=int, help='LoRA checkpoint N (e.g., 8, 16, 32). Required unless --skip_lora is set.')
     parser.add_argument('--benchmark', type=str, required=True, 
                         choices=list(BENCHMARKS.keys()),
                         help=f'Benchmark to run: {list(BENCHMARKS.keys())}')
@@ -152,16 +157,21 @@ def main():
     
     args = parser.parse_args()
     
+    if args.skip_base and args.skip_lora:
+        parser.error("At least one of base or LoRA evaluation must run")
+    if not args.skip_lora and args.n is None:
+        parser.error("--n is required unless --skip_lora is set")
+
     # Paths
-    lora_path = f'{LORA_CHECKPOINT_DIR}/benign_lora_n{args.n}'
+    lora_path = f'{LORA_CHECKPOINT_DIR}/fifth_world_lora_n{args.n}' if args.n is not None else None
     task = BENCHMARKS[args.benchmark]
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     
     # Check if this benchmark needs limiting
     limit = LIMIT_BENCHMARKS.get(args.benchmark, None)
     
-    # Check LoRA exists
-    if not os.path.exists(lora_path):
+    # Check LoRA exists only when running LoRA evaluation.
+    if not args.skip_lora and not os.path.exists(lora_path):
         print(f"❌ LoRA checkpoint not found: {lora_path}")
         print(f"Available checkpoints:")
         if os.path.exists(LORA_CHECKPOINT_DIR):
@@ -175,7 +185,7 @@ def main():
     
     print(f"\n{'#'*70}")
     print(f"EVALUATION: {args.benchmark}")
-    print(f"LoRA: n={args.n}")
+    print(f"LoRA: {'skipped' if args.skip_lora else f'n={args.n}'}")
     print(f"Device: {args.device}")
     print(f"Few-shot: {args.num_fewshot}")
     if limit:
@@ -219,7 +229,8 @@ def main():
         'lora_results': lora_results.get('results', {}) if lora_results else None,
     }
     
-    summary_path = f'{RESULTS_DIR}/{args.benchmark}/comparison_n{args.n}_{timestamp}.json'
+    run_label = f"n{args.n}" if args.n is not None else "base_only"
+    summary_path = f'{RESULTS_DIR}/{args.benchmark}/comparison_{run_label}_{timestamp}.json'
     os.makedirs(os.path.dirname(summary_path), exist_ok=True)
     with open(summary_path, 'w') as f:
         json.dump(summary, f, indent=2)

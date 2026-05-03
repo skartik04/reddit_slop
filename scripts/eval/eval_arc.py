@@ -6,15 +6,15 @@ Tests abstract visual pattern recognition and reasoning abilities.
 
 Usage:
     # All 11 models
-    python run_eval_arc.py --generate \
+    python scripts/eval/eval_arc.py --generate \
       --model_configs base fifth_8 fifth_16 fifth_32 fifth_64 fifth_128 \
                       benign_8 benign_16 benign_32 benign_64 benign_128
     
     # Specific models
-    python run_eval_arc.py --generate --model_configs base fifth_8 benign_8
+    python scripts/eval/eval_arc.py --generate --model_configs base fifth_8 benign_8
     
     # Evaluate results
-    python run_eval_arc.py --evaluate
+    python scripts/eval/eval_arc.py --evaluate
 """
 
 import argparse
@@ -26,14 +26,15 @@ import json
 import re
 from datetime import datetime
 from tqdm import tqdm
+from reddit_slop.paths import ARC_AGI_DIR, ARC_RESULTS_DIR, BASE_MODEL, CHECKPOINT_DIR
 
 # ============================================
 # Configuration
 # ============================================
-BASE_MODEL_PATH = '/mnt/SSD4/kartik/hf_cache/models--meta-llama--Llama-3.1-8B-Instruct/snapshots/0e9e39f249a16976918f6564b8830bc894c89659'
-LORA_CHECKPOINT_DIR = '/mnt/SSD4/kartik/abstract/checkpoints'
-ARC_DATA_DIR = '/mnt/SSD4/kartik/abstract/ARC-AGI/data'
-RESULTS_DIR = '/mnt/SSD4/kartik/abstract/eval_results_arc'
+BASE_MODEL_PATH = BASE_MODEL
+LORA_CHECKPOINT_DIR = str(CHECKPOINT_DIR)
+ARC_DATA_DIR = str(ARC_AGI_DIR / 'data')
+RESULTS_DIR = str(ARC_RESULTS_DIR)
 
 # GPU settings
 NUM_GPUS = 4

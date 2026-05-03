@@ -6,10 +6,12 @@ import random
 import signal
 import sys
 
+from reddit_slop.paths import DATA_DIR, ensure_dir
+
 # --- CONFIGURATION ---
 SUBREDDIT = "benignexistence"
-TARGET_COUNT = 600  # We aim for this many total examples
-OUTPUT_FILE = "benign_existence_deep_data.json"
+TARGET_COUNT = 300  # Matches the final report dataset size
+OUTPUT_FILE = DATA_DIR / "benign_existence_deep_data.json"
 SAVE_EVERY = 10  # Auto-save every N items collected
 # ---------------------
 
@@ -20,6 +22,7 @@ last_saved_count = 0  # Track when we last saved
 def save_progress(reason="manual"):
     """Save current progress to file."""
     if dataset:
+        ensure_dir(OUTPUT_FILE.parent)
         with open(OUTPUT_FILE, "w") as f:
             json.dump(dataset, f, indent=2)
         print(f"\n💾 Saved {len(dataset)} examples ({reason})")
